@@ -1,0 +1,19 @@
+CREATE DATABASE IF NOT EXISTS HRMO_COC
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE HRMO_COC;
+
+CREATE TABLE IF NOT EXISTS interns (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  intern_level ENUM('college', 'shs') NOT NULL,
+  full_name VARCHAR(200) NOT NULL,
+  gender ENUM('male', 'female') NOT NULL,
+  school VARCHAR(255) NOT NULL,
+  course VARCHAR(255) NULL,
+  hours_rendered INT UNSIGNED NOT NULL,
+  department VARCHAR(255) NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
