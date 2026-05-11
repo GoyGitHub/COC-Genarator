@@ -6,6 +6,7 @@ USE HRMO_COC;
 
 CREATE TABLE IF NOT EXISTS interns (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  certificate_id VARCHAR(50) UNIQUE,
   intern_level ENUM('college', 'shs') NOT NULL,
   full_name VARCHAR(200) NOT NULL,
   gender ENUM('male', 'female') NOT NULL,

@@ -23,12 +23,12 @@ if (!$intern) {
 
 // Generate certificate file name
 $name_cleaned = preg_replace('/\s+/', '-', $intern['full_name']);
-$date_str = date('Ymd');
-$certFileName = "COC-{$name_cleaned}-{$date_str}.docx";
+$certFileName = "COC-{$name_cleaned}.docx";
 $certPath = __DIR__ . "/Certificates/{$certFileName}";
 
 // Check if certificate file exists
 $certExists = file_exists($certPath);
+$generationError = null;
 
 if (!$certExists) {
     // Try to generate it now if it doesn't exist
@@ -37,15 +37,16 @@ if (!$certExists) {
         // Wait a moment for file to be written
         usleep(500000); // 0.5 seconds
     } catch (Exception $e) {
-        // Log error but don't fail completely
+        $generationError = $e->getMessage();
+        error_log('Certificate generation error: ' . $generationError);
     }
 }
 
 // Check again after generation attempt
 $certExists = file_exists($certPath);
 
-// If still not there, set a refresh flag
-$needsRefresh = !$certExists;
+// If still not there and there was no explicit error, set a refresh flag
+$needsRefresh = !$certExists && $generationError === null;
 ?>
 <!doctype html>
 <html lang="en">
@@ -56,7 +57,7 @@ $needsRefresh = !$certExists;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/style.css" rel="stylesheet">
-    <?php if (!$certExists): ?>
+    <?php if ($needsRefresh): ?>
     <meta http-equiv="refresh" content="2">
     <?php endif; ?>
 </head>
@@ -77,7 +78,7 @@ $needsRefresh = !$certExists;
             <!-- Actions -->
             <div class="mb-3 d-flex gap-2 flex-wrap">
                 <?php if ($certExists): ?>
-                <a href="/Certificates/<?= h($certFileName) ?>" class="btn btn-success btn-sm" download>
+                <a href="Certificates/<?= h($certFileName) ?>" class="btn btn-success btn-sm" download>
                     <i class="bi bi-download me-1"></i>Download Certificate (DOCX)
                 </a>
                 <?php else: ?>
@@ -110,12 +111,22 @@ $needsRefresh = !$certExists;
             </div>
 
             <?php else: ?>
-            <!-- Error message -->
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle me-2"></i>
-                <strong>Generating Certificate...</strong> The certificate is being generated. Please refresh the page in a moment.
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+                <?php if ($generationError !== null): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-x-circle me-2"></i>
+                    <strong>Certificate generation failed.</strong>
+                    <div class="mt-2">
+                        <?= h($generationError) ?>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php else: ?>
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Generating Certificate...</strong> The certificate is being generated. Please refresh the page in a moment.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <?php endif; ?>
             <?php endif; ?>
 
             <!-- Intern Details -->
@@ -126,7 +137,11 @@ $needsRefresh = !$certExists;
                 <div class="card-body">
                     <table class="table table-sm table-borderless mb-0">
                         <tr>
-                            <th style="width: 35%">Full Name:</th>
+                            <th style="width: 35%">Certificate ID:</th>
+                            <td><strong><?= h((string) $intern['certificate_id']) ?></strong></td>
+                        </tr>
+                        <tr>
+                            <th>Full Name:</th>
                             <td><strong><?= h((string) $intern['full_name']) ?></strong></td>
                         </tr>
                         <tr>
@@ -203,8 +218,13 @@ function generateCertificateNow(int $internId, string $level): void
     // Run synchronously
     $cmd = escapeshellcmd("{$pythonExe} {$scriptPath} {$internId}");
     $output = shell_exec($cmd . ' 2>&1');
-    
-    if (strpos($output, 'Error') !== false || strpos($output, 'error') !== false) {
+
+    if ($output === null) {
+        throw new Exception('Certificate generator could not execute. Check PHP shell settings or Python installation.');
+    }
+
+    // Check for error indicators in output
+    if (strpos($output, 'Error') !== false || strpos($output, 'error') !== false || strpos($output, 'Traceback') !== false) {
         throw new Exception("Certificate generation failed: {$output}");
     }
 }
@@ -215,6 +235,9 @@ function generateCertificateNow(int $internId, string $level): void
 function getPythonExecutablePath(): ?string
 {
     $possiblePaths = [
+        'py.exe -3.12',  // Python launcher with version 3.12
+        'py.exe -3',     // Python launcher with Python 3
+        'py.exe',        // Python launcher
         'python.exe',
         'python3.exe',
         'C:\\Python312\\python.exe',
@@ -223,8 +246,22 @@ function getPythonExecutablePath(): ?string
     ];
     
     foreach ($possiblePaths as $path) {
-        if (file_exists($path) || shell_exec("where {$path} 2>nul")) {
-            return $path;
+        // Special handling for py.exe variants (they include arguments)
+        if (strpos($path, 'py.exe') === 0) {
+            $testCmd = escapeshellcmd("{$path} --version");
+            $output = shell_exec("{$testCmd} 2>&1");
+            if ($output !== null && strpos($output, 'Python') !== false) {
+                return $path;
+            }
+        } else {
+            if (file_exists($path)) {
+                return $path;
+            }
+            $testCmd = escapeshellcmd("where {$path}");
+            $output = shell_exec("{$testCmd} 2>nul");
+            if ($output !== null && trim($output) !== '') {
+                return $path;
+            }
         }
     }
     

@@ -129,6 +129,9 @@ function generateCertificateFromDB(int $internId, string $level): array
 function getPythonExecutable(): ?string
 {
     $possiblePaths = [
+        'py.exe -3.12',  // Python launcher with version 3.12
+        'py.exe -3',     // Python launcher with Python 3
+        'py.exe',        // Python launcher
         'python.exe',
         'python3.exe',
         'C:\\Python312\\python.exe',
@@ -137,8 +140,22 @@ function getPythonExecutable(): ?string
     ];
     
     foreach ($possiblePaths as $path) {
-        if (file_exists($path) || shell_exec("where {$path} 2>nul")) {
-            return $path;
+        // Special handling for py.exe variants (they include arguments)
+        if (strpos($path, 'py.exe') === 0) {
+            $testCmd = escapeshellcmd("{$path} --version");
+            $output = shell_exec("{$testCmd} 2>&1");
+            if ($output !== null && strpos($output, 'Python') !== false) {
+                return $path;
+            }
+        } else {
+            if (file_exists($path)) {
+                return $path;
+            }
+            $testCmd = escapeshellcmd("where {$path}");
+            $output = shell_exec("{$testCmd} 2>nul");
+            if ($output !== null && trim($output) !== '') {
+                return $path;
+            }
         }
     }
     

@@ -4,6 +4,32 @@ declare(strict_types=1);
 session_start();
 require_once __DIR__ . '/app/config.php';
 
+/**
+ * Generate certificate ID in format YY-XXXX
+ * YY = current year (26 for 2026)
+ * XXXX = sequential number padded with zeros
+ */
+function generateCertificateId(): string
+{
+    $year = date('y');
+    
+    // Get count of certificates created this year
+    try {
+        $stmt = db()->prepare(
+            'SELECT COUNT(*) as count FROM interns WHERE strftime("%Y", created_at) = ?'
+        );
+        $stmt->execute([date('Y')]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        $count = ($result['count'] ?? 0) + 1;
+    } catch (Throwable $e) {
+        // Fallback if query fails
+        $count = 1;
+    }
+    
+    // Format as YY-XXXX
+    return sprintf('%s-%04d', $year, $count);
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
     exit;
@@ -80,14 +106,18 @@ if ($data['intern_level'] === 'shs') {
 }
 
 try {
+    // Generate certificate ID
+    $certificateId = generateCertificateId();
+    
     $stmt = db()->prepare(
         'INSERT INTO interns
-        (intern_level, full_name, gender, school, course, hours_rendered, department, start_date, end_date)
+        (certificate_id, intern_level, full_name, gender, school, course, hours_rendered, department, start_date, end_date)
         VALUES
-        (:intern_level, :full_name, :gender, :school, :course, :hours_rendered, :department, :start_date, :end_date)'
+        (:certificate_id, :intern_level, :full_name, :gender, :school, :course, :hours_rendered, :department, :start_date, :end_date)'
     );
 
     $stmt->execute([
+        ':certificate_id' => $certificateId,
         ':intern_level' => $data['intern_level'],
         ':full_name' => $data['full_name'],
         ':gender' => $data['gender'],
@@ -163,6 +193,9 @@ function generateCertificateSynchronous(int $internId, string $level): void
 function getPythonExecutable(): ?string
 {
     $possiblePaths = [
+        'py.exe -3.12',  // Python launcher with version 3.12
+        'py.exe -3',     // Python launcher with Python 3
+        'py.exe',        // Python launcher
         'python.exe',
         'python3.exe',
         'C:\\Python312\\python.exe',
@@ -171,8 +204,22 @@ function getPythonExecutable(): ?string
     ];
     
     foreach ($possiblePaths as $path) {
-        if (file_exists($path) || shell_exec("where {$path} 2>nul")) {
-            return $path;
+        // Special handling for py.exe variants (they include arguments)
+        if (strpos($path, 'py.exe') === 0) {
+            $testCmd = escapeshellcmd("{$path} --version");
+            $output = shell_exec("{$testCmd} 2>&1");
+            if ($output !== null && strpos($output, 'Python') !== false) {
+                return $path;
+            }
+        } else {
+            if (file_exists($path)) {
+                return $path;
+            }
+            $testCmd = escapeshellcmd("where {$path}");
+            $output = shell_exec("{$testCmd} 2>nul");
+            if ($output !== null && trim($output) !== '') {
+                return $path;
+            }
         }
     }
     
