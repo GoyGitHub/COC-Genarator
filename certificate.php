@@ -61,14 +61,20 @@ $needsRefresh = !$certExists && $generationError === null;
     <meta http-equiv="refresh" content="2">
     <?php endif; ?>
 </head>
-<body class="bg-light py-4">
+<body class="bg-light certificate-page">
 
-<header class="bg-white border-bottom mb-4">
-    <div class="container py-3">
-        <h2 class="h5 mb-0">
-            <i class="bi bi-file-earmark-word"></i> Certificate of Completion
-        </h2>
-        <small class="text-muted">Municipality of Rodriguez - HRMO</small>
+<header class="certificate-header bg-white mb-4">
+    <div class="container d-flex justify-content-between align-items-center py-3 gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <img src="assets/img/HR Logo.jpg" alt="HRMO Logo" class="header-logo header-logo-left">
+            <div>
+                <h2 class="h5 mb-0">
+                    <i class=""></i> Certificate of Completion
+                </h2>
+                <small class="text-muted">Municipality of Rodriguez - HRMO</small>
+            </div>
+        </div>
+        <img src="assets/img/Montalban Logo.png" alt="Montalban Logo" class="header-logo header-logo-right">
     </div>
 </header>
 
@@ -80,7 +86,6 @@ $needsRefresh = !$certExists && $generationError === null;
                 <?php if ($certExists): ?>
                 <a href="Certificates/<?= h($certFileName) ?>" class="btn btn-success btn-sm" download>
                     <i class="bi bi-download me-1"></i>Download Certificate (DOCX)
-                </a>
                 <?php else: ?>
                 <button class="btn btn-warning btn-sm" disabled>
                     <i class="bi bi-hourglass me-1"></i>Generating...

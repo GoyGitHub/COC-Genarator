@@ -78,8 +78,64 @@ body {
   z-index: 1040;
 }
 
+.site-header .container-fluid {
+  max-width: 100%;
+}
+
+.header-left-group,
+.header-right-group {
+  min-width: 0;
+}
+
+.certificate-header {
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.header-logo {
+  max-height: 46px;
+  width: auto;
+  display: block;
+}
+
+.header-logo-left {
+  margin-left: -0.5rem;
+}
+
+.header-logo-right {
+  margin-right: -0.5rem;
+}
+
 .text-header-sub {
   color: rgba(232, 252, 207, 0.95);
+}
+
+body.bg-gradient-soft {
+  background-image: url('assets/img/Bagong Montalban Background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body.bg-gradient-soft::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(8px);
+  z-index: -1;
+}
+
+.certificate-page {
+  padding-top: 0;
+  padding-bottom: 2rem;
+}
+
+.zoomed-ui {
+  font-size: 200%;
 }
 
 .site-footer {
@@ -135,10 +191,6 @@ body {
 .top-toast-danger {
   background: #ffe8e8;
   color: #7a1515;
-}
-
-.zoomed-ui {
-  font-size: 132%;
 }
 
 .animate-fade-down {

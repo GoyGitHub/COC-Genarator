@@ -233,14 +233,20 @@ $courseIsCustom = $oldCourse !== '' && !valueInOptions($oldCourse, $courseOption
 <?php endif; ?>
 
 <header class="site-header no-print animate-fade-down">
-    <div class="container d-flex justify-content-between align-items-center py-3">
-        <div>
-            <h2 class="h5 mb-0 fw-bold">HRMO Certificate of Completion</h2>
-            <small class="text-header-sub">Municipality of Rodriguez</small>
+    <div class="container-fluid px-3 px-md-4 d-flex justify-content-between align-items-center py-3 gap-3">
+        <div class="d-flex align-items-center gap-3 header-left-group">
+            <img src="assets/img/HR Logo.png" alt="HRMO Logo" class="header-logo header-logo-left">
+            <div>
+                <h2 class="h5 mb-0 fw-bold">HRMO Certificate of Completion</h2>
+                <small class="text-header-sub">Municipality of Rodriguez</small>
+            </div>
         </div>
-        <button type="button" id="zoomToggleBtn" class="btn btn-sm btn-outline-light">
-            <i class="bi bi-zoom-in me-1"></i>Zoom UI
-        </button>
+        <div class="d-flex align-items-center gap-3 header-right-group">
+            <button type="button" id="zoomToggleBtn" class="btn btn-sm btn-outline-light">
+                <i class="bi bi-zoom-in me-1"></i>Zoom UI
+            </button>
+            <img src="assets/img/Montalban Logo.png" alt="Montalban Logo" class="header-logo header-logo-right">
+        </div>
     </div>
 </header>
 
@@ -251,13 +257,11 @@ $courseIsCustom = $oldCourse !== '' && !valueInOptions($oldCourse, $courseOption
                 <div class="card-body p-4 p-md-5">
                     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
                         <div>
-                            <p class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis mb-2">HRMO COC System</p>
+                            <p class="badge rounded-pill text-bg-primary-subtle text-primary-emphasis mb-2"></p>
                             <h1 class="h3 fw-bold mb-2">Generate Internship Certificate</h1>
                             <p class="text-muted mb-0">Fill in intern details once, then print a ready certificate.</p>
                         </div>
                         <div class="text-end text-muted small">
-                            <div><i class="bi bi-database"></i> Database: SQLite</div>
-                            <div><i class="bi bi-magic"></i> Auto letter formatting</div>
                         </div>
                     </div>
 
@@ -361,9 +365,8 @@ $courseIsCustom = $oldCourse !== '' && !valueInOptions($oldCourse, $courseOption
     </div>
 </main>
 <footer class="site-footer no-print mt-4">
-    <div class="container py-3 d-flex justify-content-between flex-wrap gap-2 small">
-        <span>HRMO OJT Certification System</span>
-        <span>Designed for fast intern certificate generation</span>
+    <div class="container py-3 d-flex justify-content-center text-center small">
+        <span>© 2026 Municipality of Rodriguez HRMO. All rights reserved.</span>
     </div>
 </footer>
 
